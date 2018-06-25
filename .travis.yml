@@ -1,0 +1,40 @@
+sudo: required
+dist: trusty
+group: deprecated-2017Q4
+language: bash
+before_script:
+- sudo apt-get update -qq
+- sudo apt-get install aria2 zip unzip check xz-utils
+script:
+- source ./env.sh
+- "${DLR} ${ROOTFS_URL_CENTOS} -o ${ROOTFS_FN_CENTOS}"
+- "${DLR} ${LNCR_URL} -o ${LNCR_ZIP}"
+- echo ${ROOTFS_URL_CENTOS}
+- pwd
+- ls -lh
+- unzip ${LNCR_ZIP} ${LNCR_FN_CENTOS}
+- mkdir rootfs
+- sudo tar -Jxpf ${ROOTFS_FN_CENTOS} -C rootfs
+- cd rootfs
+- sudo tar -zcpf ../rootfs.tar.gz *
+- sudo chown `id -un` ../rootfs.tar.gz
+- cd ..
+- mkdir out
+- mv -f ${LNCR_FN_CENTOS} ./out/
+- mv -f rootfs.tar.gz ./out/
+- cd out
+- zip CentOS-${ROOTFS_VER_CENTOS}.zip *
+- cd ..
+- pwd && ls -lh
+notifications:
+  email: false
+deploy:
+  provider: releases
+  api_key:
+    secure: KX3QbcGrxpe1EDe7pAdodmC35UgskEN8dBwv1sQgriNghqSx7/Ed6E5N+Lb1pqxlWIO6dU174wAHS+xk1jnsyyAPU233fFvs/YtubkanH7tyKIB8cowWxLo4LJjxFsRKIi/zPqmvfR6Su1AmotgEsLTv3TwrE7oPxZCkThBNin0R8LPDbdl+dtwrMlk16fIzmAegysJ8+4UWY8ab1+0g8RXyseh9QUVpVaqLU1l1bxb86SYl/HnXgvniAzpri20Sz2wNy+GEzgGOvPa/gDC22oN563Cpnqh2mOFzjmFv0jM9FcibJlFYEiowD6uhHEkNU0peyWIBtK7BX+cYtshnjtuWm1FsUL5HaaxwhS1OzyLFjCVfn6uIn3yKdDCZt3rgr2gfleEtcPmsDm5RIeeXlBodEHXqUVaioHOK2eMCtqdUnYJfzJ1PGUzh091HZ6F2NfCTUfzc4uX2Peal4SlH5tR+aCokSdX8fsCdCvENi8EGFe3zbiy751S2Aos1bbOAYpymoFHWnw5VJX6JMH0b1hKF3GdjeJe0lor1Vf6wkjVifdaIMlj+Jhdmw1tv23hg1IdzLgZa+7dgOh4v59uLf78JeK8fhMBH1rC0RD+0r6LYzNJsNxQXQ65SlUH0PsYwVKpdvYcl/rJjSFsEzs+IznJHLmbbxCoxMBgM7tvTbuY=
+  file: out/CentOS-${ROOTFS_VER_CENTOS}.zip
+  skip_cleanup: true
+  on:
+    repo: fbigun/WSL-Distro-Rootfs
+    tags: true
+    all_branches: true
